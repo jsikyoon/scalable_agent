@@ -64,6 +64,7 @@ RUN pip install dm-sonnet==1.23
 RUN NP_INC="$(python -c 'import numpy as np; print(np.get_include())[5:]')" && \
     git clone https://github.com/jsikyoon/lab.git --branch jsik/dm_scalable_agent && \
     cd lab && \
+    rm -rf bazel-* && \
     sed -i 's@hdrs = glob(\[@hdrs = glob(["'"$NP_INC"'/\*\*/*.h", @g' python.BUILD && \
     sed -i 's@includes = \[@includes = ["'"$NP_INC"'", @g' python.BUILD && \
     bazel build -c opt python/pip_package:build_pip_package && \
@@ -94,12 +95,12 @@ RUN TF_INC="$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_include
     g++-4.8 -std=c++11 -shared batcher.cc -o batcher.so -fPIC -I $TF_INC -O2 -D_GLIBCXX_USE_CXX11_ABI=0 -L$TF_LIB -ltensorflow_framework
 
 # Run tests.
-#RUN python py_process_test.py
+RUN python py_process_test.py
 #RUN python dynamic_batching_test.py
-#RUN python vtrace_test.py
+RUN python vtrace_test.py
 
 # Run.
-#CMD ["sh", "-c", "python experiment.py --total_environment_frames=10000 --dataset_path=../dataset && python experiment.py --mode=test --test_num_episodes=5"]
+CMD ["sh", "-c", "python experiment.py --total_environment_frames=10000 --dataset_path=../dataset && python experiment.py --mode=test --test_num_episodes=5"]
 
 # Docker commands:
 #   docker rm scalable_agent -v
