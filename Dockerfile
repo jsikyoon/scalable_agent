@@ -1,6 +1,7 @@
 #FROM ubuntu:18.04
 #FROM nvidia/cuda:9.0-base-ubuntu16.04
-FROM tensorflow/tensorflow:1.9.0-devel-gpu
+#FROM tensorflow/tensorflow:1.9.0-devel-gpu
+FROM nvidia/cuda:9.0-cudnn7-devel
 
 # Install dependencies.
 # g++ (v. 5.4) does not work: https://github.com/tensorflow/tensorflow/issues/13308
@@ -44,9 +45,9 @@ RUN git clone https://github.com/jsikyoon/my_ubuntu_settings --branch indent2 &&
 ############################################################
 
 # Install bazel
-RUN rm -rf /usr/local/bin/bazel && \
-    rm -rf /usr/local/lib/bazel && \
-    rm -rf /etc/bazel.bazelrc
+#RUN rm -rf /usr/local/bin/bazel && \
+#    rm -rf /usr/local/lib/bazel && \
+#    rm -rf /etc/bazel.bazelrc
 
 RUN echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | \
     tee /etc/apt/sources.list.d/bazel.list && \
@@ -55,8 +56,11 @@ RUN echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8
     apt-get update && apt-get install -y bazel=1.0.0
 
 # Install TensorFlow and other dependencies
-#RUN pip install numpy==1.13.3 markdown==2.6.8 tensorflow-gpu==1.9.0 dm-sonnet==1.23
-RUN pip install dm-sonnet==1.23
+RUN pip install --upgrade "pip < 21.0" && \
+    pip install setuptools==39.1.0 mock==2.0.0 && \
+    pip install numpy==1.15.0 pandas==0.21.0 markdown==2.6.8
+RUN pip install tensorflow-gpu==1.9.0 dm-sonnet==1.23
+#RUN pip install dm-sonnet==1.23
 
 # Build and install DeepMind Lab pip package.
 # We explicitly set the Numpy path as shown here:
@@ -79,8 +83,9 @@ RUN mkdir dataset && \
     curl https://bradylab.ucsd.edu/stimuli/ObjectsAll.zip -o ObjectsAll.zip -k && \
     unzip ObjectsAll.zip && \
     cd OBJECTSALL && \
-    cp /root/lab/copy_imgs.py . && \
+    cp ../../lab/copy_imgs.py . && \
     python copy_imgs.py && \
+    cd .. && \
     rm -rf __MACOSX OBJECTSALL ObjectsAll.zip && \
     echo Dataset directory: && \
     pwd
@@ -96,7 +101,7 @@ RUN TF_INC="$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_include
 
 # Run tests.
 RUN python py_process_test.py
-#RUN python dynamic_batching_test.py
+RUN python dynamic_batching_test.py
 RUN python vtrace_test.py
 
 # Run.
